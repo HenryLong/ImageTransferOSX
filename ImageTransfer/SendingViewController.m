@@ -12,7 +12,7 @@
 #import "MHWDirectoryWatcher.h"
 
 
-@interface SendingViewController () <NSStreamDelegate ,NSDraggingDestination>
+@interface SendingViewController ()
 @property (nonatomic, weak) IBOutlet IKImageView *  mImageView;
 @end
 
