@@ -40,7 +40,7 @@
             mResult.stringValue = @"Can not connect to the host!";
             NSError *theError = [theStream streamError];
             NSAlert *theAlert = [[NSAlert alloc] init];
-            [theAlert setMessageText:@"Error reading stream!"];
+            [theAlert setMessageText:@"Error sending stream!"];
             [theAlert setInformativeText:[NSString stringWithFormat:@"Error %ld: %@",
                                           [theError code], [theError localizedDescription]]];
             [theAlert addButtonWithTitle:@"OK"];
@@ -187,17 +187,6 @@
     
 }
 
-- (void)processImageList{
-    NSLog(@"imageArray count: %ld", imageArray.count);
-    if(imageArray.count != 0){
-        NSURL *imageURL = [NSURL fileURLWithPath: [imageArray objectAtIndex:0]]; //deliver first index
-        [self openImageURL: imageURL];
-        NSLog(@"Sending Image");
-        [self initNetworkCommunication];
-        [imageArray removeObjectAtIndex:0];
-    }
-}
-
 
 - (NSString *)pathToMonitor
 {
@@ -296,6 +285,7 @@
     NSString * _path = [[NSBundle mainBundle] pathForResource: @"Qisda" ofType: @"jpg"];   //default picture
     NSURL * url = [NSURL fileURLWithPath: _path];
     [self openImageURL: url];
+    
 }
 
 
@@ -309,7 +299,8 @@
     fileList = [fileManager contentsOfDirectoryAtPath:[self pathToMonitor] error:&error];
     fileCount = [fileList count];  //update filecount
     
-    self.directoryWatcher = [MHWDirectoryWatcher directoryWatcherAtPath:[self pathToMonitor] callback:^{[self directoryDidChange];}];
+    self.directoryWatcher = [MHWDirectoryWatcher
+                             directoryWatcherAtPath:[self pathToMonitor] callback:^{[self directoryDidChange];}];
     
     
     NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
@@ -317,15 +308,22 @@
                            andSelector:@selector(handleGetURLEvent:withReplyEvent:)
                          forEventClass:kInternetEventClass andEventID:kAEGetURL];
     
+    
     //Initiate ReceiveServer
     mReceiveServer = [[ReceivingFileServer alloc] init];
     [mReceiveServer setup];
     [mReceiveServer setview:self.view.window];
     
+    //Initiate imageArray to receive from extension if exist
+    //imageArray = [[NSMutableArray alloc]initWithArray:[self readUrlFromExtension]];
+    imageArray = [NSMutableArray arrayWithArray:[self readUrlFromExtension]];
+    if(imageArray.count != 0)
+        [self processImageList];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSLog(@"viewDidLoad");
 }
 /*
  * This is handler from share extension openURL
@@ -334,16 +332,37 @@
 {
     NSURL *mLauchURL = [NSURL URLWithString:[[event paramDescriptorForKeyword:keyDirectObject] stringValue]];
     NSLog(@"Launch url: %@", mLauchURL);
-    
-    //Initiate imageArray to receive from extension
-    imageArray = [[NSMutableArray alloc] initWithArray:[self readUrlFromExtension]];
-    [self processImageList];
+    imageArray = [NSMutableArray arrayWithArray:[self readUrlFromExtension]];
+    if(imageArray.count != 0)
+        [self processImageList];
 }
+
+- (void)processImageList{
+    NSLog(@"imageArray count: %ld", imageArray.count);
+    if(imageArray.count != 0){
+        NSURL *imageURL = [NSURL fileURLWithPath: [imageArray objectAtIndex:0]]; //deliver first index
+        [self openImageURL: imageURL];
+        NSLog(@"Sending Image");
+        [self initNetworkCommunication];
+        [imageArray removeObjectAtIndex:0];
+    }
+}
+
 
 - (NSMutableArray *)readUrlFromExtension{
     NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.image.share"];
     NSMutableArray *value = [shared valueForKey:@"url"];
     NSLog(@"readUrlFromExtension url: %@", value);
+    /*
+    NSAlert *theAlert = [[NSAlert alloc] init];
+    [theAlert setMessageText:@"readUrlFromExtension url!"];
+    [theAlert setInformativeText:[NSString stringWithFormat:@"url %@",value]];
+    [theAlert addButtonWithTitle:@"OK"];
+    [theAlert beginSheetModalForWindow:[self.view window] completionHandler:^(NSInteger result) {
+        NSLog(@"Alert Dialog Show");
+    }];
+    */
+    [shared removeObjectForKey:@"url"];  // delete key after read
     return value;
 }
 

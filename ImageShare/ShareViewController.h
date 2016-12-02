@@ -13,7 +13,6 @@
 @interface ShareViewController : SLComposeServiceViewController{
     NSString *fileName;
     NSMutableArray *arrayOfImage;
-    BOOL isCancel;
 }
 
 

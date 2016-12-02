@@ -16,7 +16,6 @@
 
 - (void)loadView {
     [super loadView];
-    isCancel = FALSE;
     arrayOfImage = [[NSMutableArray alloc] init];
     // Insert code here to customize the view
     self.title = NSLocalizedString(@"ImageShare", @"Title of the Social Service");
@@ -56,15 +55,23 @@
 - (void)didSelectPost {
     // Perform the post operation
     // When the operation is complete (probably asynchronously), the service should notify the success or failure as well as the items that were actually shared
-   [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
-    
+    [self saveUrlFromExtension];
+    //Using NSWorkspace instead
+    if (![[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString:@"ImageShare://"]]) {
+        [[self extensionContext] openURL:[NSURL URLWithString:@"ImageShare://"] completionHandler:^(BOOL success) {
+            NSLog(@"Success? %i", success);
+            [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+        }];
+    } else {
+        NSLog(@"Success!");
+        [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+    }
 }
 
 
 - (void)didSelectCancel {
     // Cleanup
     // Notify the Service was cancelled
-    isCancel = TRUE;
     NSError *cancelError = [NSError errorWithDomain:NSCocoaErrorDomain code:NSUserCancelledError userInfo:nil];
     [self.extensionContext cancelRequestWithError:cancelError];
 }
@@ -102,17 +109,6 @@
 
 - (void)viewDidDisappear {
     NSLog(@"viewDidDisappear");
-    if(!isCancel){
-        [self saveUrlFromExtension];
-        //Using NSWorkspace instead
-        if (![[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString:@"ImageShare://"]]) {
-            [[self extensionContext] openURL:[NSURL URLWithString:@"ImageShare://"] completionHandler:^(BOOL success) {
-            NSLog(@"Success? %i", success);
-        }];
-        } else {
-            NSLog(@"Success!");
-        }
-    }
 }
 
 - (void) insertURLtoArray: (NSString*)fileUrl {
