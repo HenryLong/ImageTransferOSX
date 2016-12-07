@@ -7,185 +7,15 @@
 //
 
 #import "SendingViewController.h"
-#import <CoreFoundation/CFStream.h>
-#import <Foundation/NSRunLoop.h>
-#import "MHWDirectoryWatcher.h"
+#import "NSView+APForwardDraggingDestination.h"
 
-
-@interface SendingViewController ()
-@property (nonatomic, weak) IBOutlet IKImageView *  mImageView;
-@end
 
 @implementation SendingViewController
-
-
-- (void)stream:(NSStream *)theStream handleEvent:(NSStreamEvent)streamEvent
-{
-    //NSLog(@"stream event %i", streamEvent);
-    switch (streamEvent) {
-        case NSStreamEventOpenCompleted:
-        {
-            NSLog(@"Stream opened!");
-            mResult.stringValue = @"Stream opened!";
-            isHeader = true;
-            break;
-        }
-        case NSStreamEventHasBytesAvailable:
-        {
-            break;
-        }
-        case NSStreamEventErrorOccurred:
-        {
-            NSLog(@"Can not connect to the host!");
-            mResult.stringValue = @"Can not connect to the host!";
-            NSError *theError = [theStream streamError];
-            NSAlert *theAlert = [[NSAlert alloc] init];
-            [theAlert setMessageText:@"Error sending stream!"];
-            [theAlert setInformativeText:[NSString stringWithFormat:@"Error %ld: %@",
-                                          [theError code], [theError localizedDescription]]];
-            [theAlert addButtonWithTitle:@"OK"];
-            [theAlert beginSheetModalForWindow:[self.view window] completionHandler:^(NSInteger result) {
-                NSLog(@"Alert Dialog Show");
-            }];
-            [theStream close];
-            break;
-        }
-        case NSStreamEventEndEncountered:
-        {
-            NSLog(@"NSStreamEventEndEncountered!");
-            mResult.stringValue = @"NSStreamEventEndEncountered!";
-            if(theStream == outputStream){
-                //[inputStream close];
-                [outputStream close];
-                [outputStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-                outputStream = nil; // stream is ivar, so reinit it
-            }
-            NSAlert *theAlert = [[NSAlert alloc] init];
-            [theAlert setMessageText:@"Send Successfully"];
-            [theAlert setInformativeText:[NSString stringWithFormat:@"Sent: %@",path]];
-            [theAlert addButtonWithTitle:@"OK"];
-            [theAlert beginSheetModalForWindow:[self.view window] completionHandler:^(NSInteger result) {
-                NSLog(@"Sent dialog show");
-            }];
-            isHeader = true;
-            [self processImageList]; //To process others if exist
-            NSLog(@"break");
-            break;
-        }
-        case NSStreamEventHasSpaceAvailable:
-        {
-            if (theStream == outputStream){
-                //NSLog(@"NSStreamEventHasSpaceAvailable!");
-                mResult.stringValue = @"NSStreamEventHasSpaceAvailable!";
-                
-                if(isHeader){   //everytime transfer packet header first, 1024 bytes for length + filename
-                    uint8_t headerBuf[1024];
-                    NSUInteger headerLen = 1024;
-                    NSData* filename = [[mFileName stringValue] dataUsingEncoding:NSUTF8StringEncoding];
-                    uint8_t * filebytes = (uint8_t *)[filename bytes];
-                    headerBuf[0] = filename.length;
-                    for (int i = 0 ; i < filename.length; i ++){
-                        headerBuf[i+1] = filebytes[i];
-                    }
-                    [outputStream write:(const uint8_t *)headerBuf maxLength:headerLen];
-                    NSLog(@"outputStream write header %ld\n", headerLen);
-                    isHeader = false;
-                }
-                
-                uint8_t *readBytes = (uint8_t *)[imageData bytes];
-                readBytes += byteIndex; // instance variable to move pointer
-                NSUInteger data_len = [imageData length];
-                NSUInteger len = ((data_len - byteIndex >= 1024) ?
-                                  1024 : (data_len - byteIndex));
-                uint8_t buf[len];
-                (void)memcpy(buf, readBytes, len);
-                len = [outputStream write:(const uint8_t *)buf maxLength:len];
-                //NSLog(@"outputStream write %ld\n", len);
-                byteIndex += len;
-            }
-            break;
-        }
-        default:
-            NSLog(@"Unknown event");
-            mResult.stringValue = @"Unknown event";
-    }
-    
-}
-
-
-- (void) initNetworkCommunication {
-    
-    //CFReadStreamRef readStream;
-    CFWriteStreamRef writeStream;
-    NSString *ip = @"192.168.49.1";
-    UInt32 sendPort = 8988;
-
-    byteIndex = 0;
-    CFStreamCreatePairWithSocketToHost(NULL, (__bridge CFStringRef)ip, sendPort, NULL , &writeStream);
-    
-    outputStream = (__bridge NSOutputStream *)writeStream;
-    [outputStream setDelegate:self];
-    [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    [outputStream open];
-    
-    
-    //UInt32 receivePort = 8989;
-    //CFStreamCreatePairWithSocketToHost(NULL, (__bridge CFStringRef)ip, receivePort, &readStream, NULL);
-    //inputStream = (__bridge NSInputStream *)readStream;
-    //[inputStream setDelegate:self];
-    //[inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    //[inputStream open];
-}
-
-
-
-
-- (void)openImageURL: (NSURL*)url
-{
-    NSLog(@"NSURL: %@",url);
-    //[mImageView setImageWithURL: url];
-    [self imageDrawing : url];
-    
-    // customize the IKImageView...
-    [self.mImageView setDoubleClickOpensImageEditPanel: NO];
-    [self.mImageView setCurrentToolMode: IKToolModeNone];
-    [self.mImageView zoomImageToFit: self];
-    /*
-    [self performSelectorOnMainThread:@selector(myCustomDrawing:)
-                           withObject:url
-                        waitUntilDone:YES];
-    */
-    path = [url path];  //keep the path to transfer
-    imageData = [[NSFileManager defaultManager] contentsAtPath:path];  //construct imgaeData
-    mFileName.stringValue = [path lastPathComponent];
-}
-
-
-- (void) imageDrawing: (NSURL*)url{
-    CGImageRef          image = NULL;
-    CGImageSourceRef    isr = CGImageSourceCreateWithURL( (CFURLRef)url, NULL);
-    
-    if (isr)
-    {
-        image = CGImageSourceCreateImageAtIndex(isr, 0, NULL);
-        if (image)
-        {
-            mImageProperties =
-            (NSDictionary*)CFBridgingRelease(CGImageSourceCopyPropertiesAtIndex(isr, 0, (CFDictionaryRef)mImageProperties));
-        }
-        CFRelease(isr);
-    }
-    
-    if (image)
-    {
-        [self.mImageView setImage: image
-             imageProperties: mImageProperties];
-        
-        //[mWindow setTitleWithRepresentedFilename: [url path]];
-        CGImageRelease(image);
-    }
-    
-}
+@synthesize mResult;
+@synthesize mWindow;
+@synthesize path;
+@synthesize mFileName;
+@synthesize imageData;
 
 
 - (NSString *)pathToMonitor
@@ -252,7 +82,7 @@
     [self openImageURL: url];
     mFileName.stringValue = [transfer_path lastPathComponent];
     imageData = [[NSFileManager defaultManager] contentsAtPath:transfer_path];  //construct imageData
-    [self initNetworkCommunication];
+    [mSendingClient initNetworkCommunication];
 }
 
 
@@ -263,10 +93,11 @@
     NSArray *     types = [extensions pathComponents];
     
     [openPanel setAllowedFileTypes: types];
-    [openPanel beginSheetModalForWindow:mWindow
+    [openPanel beginSheetModalForWindow: mWindow
                       completionHandler:^(NSInteger result){
                           if(result == NSFileHandlingPanelOKButton){
                             [self openImageURL: [[openPanel URLs] objectAtIndex: 0]];
+                            [mSendingClient initNetworkCommunication];
                           }
                       }];
  
@@ -275,7 +106,7 @@
 
 - (IBAction) sendAndroid : (id)sender
 {
-    [self initNetworkCommunication];
+    [mSendingClient initNetworkCommunication];
 }
 
 
@@ -286,8 +117,81 @@
     NSURL * url = [NSURL fileURLWithPath: _path];
     [self openImageURL: url];
     
+    // customize the IKImageView...
+    [mImageView setDoubleClickOpensImageEditPanel: NO];
+    [mImageView setCurrentToolMode: IKToolModeNone];
+    [mImageView zoomImageToFit: self];
+    mImageView.supportsDragAndDrop = FALSE;
+    [mImageView setDelegate: self];
+    [mImageView ap_forwardDraggingDestinationTo:self];
+    [mImageView registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
 }
 
+
+- (void)openImageURL: (NSURL*)url
+{
+    NSLog(@"NSURL: %@",url);
+    //[mImageView setImageWithURL: url];
+    [self imageDrawing : url];
+    [mImageView zoomImageToFit: self];
+    
+
+    path = [url path];  //keep the path to transfer
+    imageData = [[NSFileManager defaultManager] contentsAtPath:path];  //construct imgaeData
+    mFileName.stringValue = [path lastPathComponent];
+}
+
+- (void) imageDrawing: (NSURL*)url{
+    CGImageRef          image = NULL;
+    CGImageSourceRef    isr = CGImageSourceCreateWithURL( (CFURLRef)url, NULL);
+    if (isr)
+    {
+        image = CGImageSourceCreateImageAtIndex(isr, 0, NULL);
+        if (image)
+        {
+            mImageProperties =
+            (NSDictionary*)CFBridgingRelease(CGImageSourceCopyPropertiesAtIndex(isr, 0, (CFDictionaryRef)mImageProperties));
+        }
+        CFRelease(isr);
+    }
+    if (image)
+    {
+        [mImageView setImage: image
+             imageProperties: mImageProperties];
+        
+        //[mWindow setTitleWithRepresentedFilename: [url path]];
+        CGImageRelease(image);
+    }
+}
+
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender {
+    NSLog(@"draggingEntered!");
+    return NSDragOperationGeneric;
+}
+
+
+- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender {
+    NSPasteboard *pboard = [sender draggingPasteboard];
+    if ( [[pboard types] containsObject:NSFilenamesPboardType] ) {
+        NSString * extensions = @"jpg/jpeg/JPG/JPEG/png/PNG";
+        NSArray * types = [extensions pathComponents];
+        NSURL *fileURL = [NSURL URLFromPasteboard:pboard];
+        
+        BOOL isCorrectType = [types containsObject: [[fileURL path] pathExtension]];
+        if (!isCorrectType){
+            return NO;
+        }
+        [self openImageURL:fileURL];
+    }
+    return YES;
+}
+
+-(void)concludeDragOperation:(id)sender
+{
+    NSLog(@"concludeDragOperation");
+    [mSendingClient initNetworkCommunication];
+    [mImageView zoomImageToFit: self];
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
@@ -309,22 +213,21 @@
                          forEventClass:kInternetEventClass andEventID:kAEGetURL];
     
     
+    //Initiate SendingClent
+    mSendingClient = [[SendingFileClient alloc] init];
+    [mSendingClient setview: self];
+    
     //Initiate ReceiveServer
     mReceiveServer = [[ReceivingFileServer alloc] init];
     [mReceiveServer setup];
-    [mReceiveServer setview:self.view.window];
+    [mReceiveServer setview: self.view.window];
     
     //Initiate imageArray to receive from extension if exist
-    //imageArray = [[NSMutableArray alloc]initWithArray:[self readUrlFromExtension]];
     imageArray = [NSMutableArray arrayWithArray:[self readUrlFromExtension]];
     if(imageArray.count != 0)
         [self processImageList];
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    NSLog(@"viewDidLoad");
-}
 /*
  * This is handler from share extension openURL
  */
@@ -337,15 +240,16 @@
         [self processImageList];
 }
 
-- (void)processImageList{
+- (NSUInteger) processImageList{
     NSLog(@"imageArray count: %ld", imageArray.count);
+    NSUInteger mCount = imageArray.count;
     if(imageArray.count != 0){
         NSURL *imageURL = [NSURL fileURLWithPath: [imageArray objectAtIndex:0]]; //deliver first index
         [self openImageURL: imageURL];
-        NSLog(@"Sending Image");
-        [self initNetworkCommunication];
+        [mSendingClient initNetworkCommunication];
         [imageArray removeObjectAtIndex:0];
     }
+    return mCount;
 }
 
 

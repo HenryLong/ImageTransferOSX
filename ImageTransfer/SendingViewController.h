@@ -9,39 +9,41 @@
 #import <Cocoa/Cocoa.h>
 #import <Quartz/Quartz.h>
 #import <AppKit/AppKit.h>
-#import <Foundation/NSStream.h>
-#import "ReceivingFileServer.h"
+#import "MHWDirectoryWatcher.h"
+#include "ReceivingFileServer.h"
+#include "SendingFileClient.h"
 
 @class MHWDirectoryWatcher;
 
-@interface SendingViewController :  NSViewController <NSStreamDelegate> {
-    //NSInputStream	*inputStream;
-    NSOutputStream	*outputStream;
+@interface SendingViewController :  NSViewController <NSDraggingDestination> {
     NSData *imageData;
     NSMutableArray *imageArray;
-    NSUInteger byteIndex;
-    ReceivingFileServer * mReceiveServer;
+    ReceivingFileServer *mReceiveServer;
+    SendingFileClient *mSendingClient;
     
-
-    //IBOutlet IKImageView *  mImageView;
+    IBOutlet IKImageView *  mImageView;
     IBOutlet NSWindow *     mWindow;
     IBOutlet NSTextField	*mResult;
     IBOutlet NSTextField	*mFileName;
     NSDictionary * mImageProperties;
     NSString * mImageUTType;
-    NSString * path ;
-    BOOL isHeader;
-    
+    NSString * path;
     NSInteger fileCount;
     NSFileManager * fileManager;
 }
-- (void) initNetworkCommunication;
+
 - (void) openImageURL: (NSURL*)url;
-- (void) processImageList;
+- (NSUInteger) processImageList;
 
 - (IBAction) sendAndroid : (id)sender;
 - (IBAction) openImage: (id)sender;
 
+
+@property NSString *path ;
+@property NSData *imageData;
+@property IBOutlet NSTextField	*mFileName;
+@property IBOutlet NSTextField	*mResult;
+@property IBOutlet NSWindow * mWindow;
 @property (nonatomic, strong) MHWDirectoryWatcher *directoryWatcher;
 
 @end

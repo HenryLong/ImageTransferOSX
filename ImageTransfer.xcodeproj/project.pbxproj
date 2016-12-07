@@ -16,6 +16,8 @@
 		410F23341DE81A8A00CE1236 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 410F23331DE81A8A00CE1236 /* icon.icns */; };
 		410F23381DE81A8A00CE1236 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 410F23371DE81A8A00CE1236 /* ShareViewController.m */; };
 		410F233C1DE81A8A00CE1236 /* ImageShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 410F23301DE81A8A00CE1236 /* ImageShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		411F4AB11DF7AA4600C82EC1 /* NSView+APForwardDraggingDestination.m in Sources */ = {isa = PBXBuildFile; fileRef = 411F4AAF1DF7A70D00C82EC1 /* NSView+APForwardDraggingDestination.m */; };
+		411F4AB61DF7B7D100C82EC1 /* SendingFileClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 411F4AB51DF7B7D100C82EC1 /* SendingFileClient.m */; };
 		413138A01CA3CADD00A9550F /* Qisda.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 4131389F1CA3CADD00A9550F /* Qisda.jpg */; };
 		413138D31CA3ED1900A9550F /* MHWDirectoryWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 413138D21CA3ED1900A9550F /* MHWDirectoryWatcher.m */; };
 		413D792B1DDEA120006D4323 /* ReceivingFileServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 413D792A1DDEA120006D4323 /* ReceivingFileServer.m */; };
@@ -63,6 +65,10 @@
 		410F23371DE81A8A00CE1236 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		410F23391DE81A8A00CE1236 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		410F23411DEC2DDA00CE1236 /* ImageTransfer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ImageTransfer.entitlements; sourceTree = "<group>"; };
+		411F4AAE1DF7A70D00C82EC1 /* NSView+APForwardDraggingDestination.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSView+APForwardDraggingDestination.h"; sourceTree = "<group>"; };
+		411F4AAF1DF7A70D00C82EC1 /* NSView+APForwardDraggingDestination.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSView+APForwardDraggingDestination.m"; sourceTree = "<group>"; };
+		411F4AB51DF7B7D100C82EC1 /* SendingFileClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SendingFileClient.m; sourceTree = "<group>"; };
+		411F4AB71DF7B7E500C82EC1 /* SendingFileClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SendingFileClient.h; sourceTree = "<group>"; };
 		4131389F1CA3CADD00A9550F /* Qisda.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Qisda.jpg; sourceTree = "<group>"; };
 		413138D11CA3ED1900A9550F /* MHWDirectoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MHWDirectoryWatcher.h; path = FileObserver/MHWDirectoryWatcher.h; sourceTree = "<group>"; };
 		413138D21CA3ED1900A9550F /* MHWDirectoryWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MHWDirectoryWatcher.m; path = FileObserver/MHWDirectoryWatcher.m; sourceTree = "<group>"; };
@@ -118,6 +124,8 @@
 				410C19571C98FF12006C20F7 /* SendingViewController.m */,
 				413D792C1DDEAE49006D4323 /* ReceivingFileServer.h */,
 				413D792A1DDEA120006D4323 /* ReceivingFileServer.m */,
+				411F4AB71DF7B7E500C82EC1 /* SendingFileClient.h */,
+				411F4AB51DF7B7D100C82EC1 /* SendingFileClient.m */,
 				41DA36111D1A7CE600C46D97 /* copyright.m */,
 				410C194B1C98FB1B006C20F7 /* Assets.xcassets */,
 				410C194D1C98FB1B006C20F7 /* MainMenu.xib */,
@@ -130,6 +138,7 @@
 		410C19481C98FB1B006C20F7 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				411F4AAD1DF7A70D00C82EC1 /* ForwardDraggingDestination */,
 				413138D01CA3ECC200A9550F /* FileObserver */,
 				4131389F1CA3CADD00A9550F /* Qisda.jpg */,
 				410C19491C98FB1B006C20F7 /* main.m */,
@@ -164,6 +173,16 @@
 				410F23351DE81A8A00CE1236 /* ImageShare.entitlements */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		411F4AAD1DF7A70D00C82EC1 /* ForwardDraggingDestination */ = {
+			isa = PBXGroup;
+			children = (
+				411F4AAE1DF7A70D00C82EC1 /* NSView+APForwardDraggingDestination.h */,
+				411F4AAF1DF7A70D00C82EC1 /* NSView+APForwardDraggingDestination.m */,
+			);
+			name = ForwardDraggingDestination;
+			path = ../ImageShare/ForwardDraggingDestination;
 			sourceTree = "<group>";
 		};
 		413138D01CA3ECC200A9550F /* FileObserver */ = {
@@ -293,7 +312,9 @@
 				410C19581C98FF12006C20F7 /* SendingViewController.m in Sources */,
 				410C194A1C98FB1B006C20F7 /* main.m in Sources */,
 				413D792B1DDEA120006D4323 /* ReceivingFileServer.m in Sources */,
+				411F4AB61DF7B7D100C82EC1 /* SendingFileClient.m in Sources */,
 				413138D31CA3ED1900A9550F /* MHWDirectoryWatcher.m in Sources */,
+				411F4AB11DF7AA4600C82EC1 /* NSView+APForwardDraggingDestination.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,6 +537,7 @@
 				410F233F1DE81A8A00CE1236 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
