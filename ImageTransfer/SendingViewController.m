@@ -196,7 +196,6 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
     NSLog(@"applicationDidFinishLaunching");
-    
     NSArray *fileList = [[NSArray alloc] init];
     NSError *error = nil;
     fileManager = [NSFileManager defaultManager];
@@ -206,7 +205,7 @@
     self.directoryWatcher = [MHWDirectoryWatcher
                              directoryWatcherAtPath:[self pathToMonitor] callback:^{[self directoryDidChange];}];
     
-    
+
     NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
     [appleEventManager setEventHandler:self
                            andSelector:@selector(handleGetURLEvent:withReplyEvent:)
@@ -217,15 +216,15 @@
     mSendingClient = [[SendingFileClient alloc] init];
     [mSendingClient setview: self];
     
+    //Check imageArray from extension if exist, then process it
+    imageArray = [NSMutableArray arrayWithArray:[self readUrlFromExtension]];
+    if(imageArray.count != 0)
+        [self processImageList];
+    
     //Initiate ReceiveServer
     mReceiveServer = [[ReceivingFileServer alloc] init];
     [mReceiveServer setup];
     [mReceiveServer setview: self.view.window];
-    
-    //Initiate imageArray to receive from extension if exist
-    imageArray = [NSMutableArray arrayWithArray:[self readUrlFromExtension]];
-    if(imageArray.count != 0)
-        [self processImageList];
 }
 
 /*
