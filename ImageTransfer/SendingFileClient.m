@@ -14,6 +14,7 @@
 NSString *description = @"";
 
 @implementation SendingFileClient
+@synthesize mViewController;
 
 - (void)setview : (SendingViewController *) viewController{
     mViewController = viewController;

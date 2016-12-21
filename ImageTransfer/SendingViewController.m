@@ -12,11 +12,10 @@
 
 @implementation SendingViewController
 @synthesize mResult;
+@synthesize mFileName;
 @synthesize mWindow;
 @synthesize path;
-@synthesize mFileName;
 @synthesize imageData;
-
 
 - (NSString *)pathToMonitor
 {

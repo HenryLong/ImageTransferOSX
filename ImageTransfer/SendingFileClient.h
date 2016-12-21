@@ -14,11 +14,13 @@
 @class SendingViewController;
 
 @interface SendingFileClient : NSObject <NSStreamDelegate> {
-    SendingViewController * mViewController;
+    __weak SendingViewController *mViewController;
     NSUInteger byteIndex;
-    BOOL isHeader;
     NSOutputStream	*outputStream;
+    BOOL isHeader;
 }
+
+@property (nonatomic, weak) SendingViewController *mViewController;
 
 - (void) initNetworkCommunication;
 - (void) setview : (SendingViewController *)viewController;

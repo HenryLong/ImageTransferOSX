@@ -14,17 +14,13 @@
 /* Port to listen on */
 #define PORT 8989
 
-
-NSWindow *mWindow;
 CFReadStreamRef readStream;
-NSMutableData *data;
-NSString *fileName;
-BOOL isHeader;
 
 @implementation ReceivingFileServer
+@synthesize mWindow;
 
-- (void)setview : (NSWindow *)window{
-    mWindow = window;
+- (void)setview : (NSWindow *)_window{
+    mWindow = _window;
 }
 
 - (int)setup {
@@ -35,7 +31,7 @@ BOOL isHeader;
      int yes = 1;
      
      /* Build our socket context; */
-     CFSocketContext CTX = { 0, NULL, NULL, NULL, NULL };
+     CFSocketContext CTX = { 0, (__bridge void *)(self), NULL, NULL, NULL };
      
      /* Create the server socket as a TCP IPv4 socket and set a callback */
      /* for calls to the socket's lower-level accept() function */
@@ -43,7 +39,7 @@ BOOL isHeader;
                                 kCFSocketAcceptCallBack, (CFSocketCallBack)acceptCallBack, &CTX);
      if (TCPServer == NULL)
          return EXIT_FAILURE;
-     
+    
      /* Re-use local addresses, if they're still in TIME_WAIT */
      setsockopt(CFSocketGetNative(TCPServer), SOL_SOCKET, SO_REUSEADDR,
                 (void *)&yes, sizeof(yes));
@@ -73,15 +69,14 @@ BOOL isHeader;
      return 0;
 }
 
-void acceptCallBack(CFSocketRef socket, CFSocketCallBackType type, CFDataRef address,
-                    const void *data,
-                    void *info)
+static void acceptCallBack(CFSocketRef socket, CFSocketCallBackType type, CFDataRef address, const void *data, void *info)
 {
     NSLog(@"acceptCallBack");
     readStream = NULL;
+    
     CFOptionFlags registeredEvents = (kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable |
                                       kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred);
-    CFStreamClientContext ctx = {0, NULL, NULL, NULL, NULL};
+    CFStreamClientContext ctx = {0, info, NULL, NULL, NULL};
     
     
     /* The native socket, used for various operations */
@@ -110,15 +105,16 @@ void acceptCallBack(CFSocketRef socket, CFSocketCallBackType type, CFDataRef add
     
 }
 
-void readCallback(CFReadStreamRef stream,CFStreamEventType event, void *myPtr)
+static void readCallback(CFReadStreamRef stream, CFStreamEventType event, void *myPtr)
 {
-
+    
+    ReceivingFileServer *delegate = (__bridge ReceivingFileServer *)myPtr;
     int kBufferSize = 1024;
     switch(event) {
         case kCFStreamEventOpenCompleted:{
             NSLog(@"Stream opened!");
-            isHeader = true;
-            data = [NSMutableData new];
+            delegate->isHeader = true;
+            delegate->data = [NSMutableData new];
             break;
         }
             
@@ -131,19 +127,19 @@ void readCallback(CFReadStreamRef stream,CFStreamEventType event, void *myPtr)
                 long numBytesRead = CFReadStreamRead(stream, buffer, kBufferSize);
                 //NSLog(@"readStream read %ld\n", numBytesRead);
                 if (numBytesRead > 0) {
-                    if(isHeader){
+                    if(delegate->isHeader){
                         uint8_t headerBuf[1024];
                         uint8_t len = buffer[0];
                         for (int i = 0 ; i < len; i ++){
                             headerBuf[i] = buffer[i+1];
                         }
-                        fileName = [[NSString alloc] initWithBytes:headerBuf length:len encoding:NSASCIIStringEncoding];
-                        NSLog(@"fileName %@\n", fileName);
-                        isHeader = false;
+                        delegate->fileName = [[NSString alloc] initWithBytes:headerBuf length:len encoding:NSASCIIStringEncoding];
+                        NSLog(@"fileName %@\n", delegate->fileName);
+                        delegate->isHeader = false;
                         break;
                     }
                     
-                    [data appendBytes:(const void *)buffer  length:numBytesRead];
+                    [delegate->data appendBytes:(const void *)buffer  length:numBytesRead];
                 }
             }
 
@@ -161,7 +157,7 @@ void readCallback(CFReadStreamRef stream,CFStreamEventType event, void *myPtr)
                     [theAlert setInformativeText:[NSString stringWithFormat:@"Error %ld: %@",
                                                   CFErrorGetCode(error), errorInfo]];
                     [theAlert addButtonWithTitle:@"OK"];
-                    [theAlert beginSheetModalForWindow:mWindow completionHandler:^(NSInteger result) {
+                    [theAlert beginSheetModalForWindow:delegate->mWindow completionHandler:^(NSInteger result) {
                     }];
                 }
                 
@@ -175,10 +171,10 @@ void readCallback(CFReadStreamRef stream,CFStreamEventType event, void *myPtr)
             // Finnish receiveing data
             //
             NSLog(@"kCFStreamEventEndEncountered");
-            NSImage *image = [[NSImage alloc] initWithData:data];
+            NSImage *image = [[NSImage alloc] initWithData:delegate->data];
             NSString *home = NSHomeDirectory();
             NSString *downloads = [NSString stringWithFormat:@"%@%@", home, @"/Downloads/"];
-            NSString *path = [NSString stringWithFormat:@"%@%@", downloads, fileName];
+            NSString *path = [NSString stringWithFormat:@"%@%@", downloads, delegate->fileName];
             saveImage(image, path);
 
             // Clean up
@@ -192,7 +188,7 @@ void readCallback(CFReadStreamRef stream,CFStreamEventType event, void *myPtr)
             [theAlert setMessageText:@"Receivied Image"];
             [theAlert setInformativeText:[NSString stringWithFormat:@"Downloaded: %@",path]];
             [theAlert addButtonWithTitle:@"OK"];
-            [theAlert beginSheetModalForWindow:mWindow completionHandler:^(NSInteger result) {
+            [theAlert beginSheetModalForWindow:delegate->mWindow completionHandler:^(NSInteger result) {
             }];
             
             break;

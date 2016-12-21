@@ -21,15 +21,15 @@
     ReceivingFileServer *mReceiveServer;
     SendingFileClient *mSendingClient;
     
-    IBOutlet IKImageView *  mImageView;
-    IBOutlet NSWindow *     mWindow;
+    IBOutlet IKImageView    *mImageView;
+    IBOutlet NSWindow       *mWindow;
     IBOutlet NSTextField	*mResult;
     IBOutlet NSTextField	*mFileName;
-    NSDictionary * mImageProperties;
-    NSString * mImageUTType;
-    NSString * path;
+    NSDictionary *mImageProperties;
+    NSString *mImageUTType;
+    NSString *path;
     NSInteger fileCount;
-    NSFileManager * fileManager;
+    NSFileManager *fileManager;
 }
 
 - (void) openImageURL: (NSURL*)url;
@@ -39,11 +39,14 @@
 - (IBAction) openImage: (id)sender;
 
 
+//we need export below variable
+@property IBOutlet NSTextField	*mResult;
+@property IBOutlet NSTextField	*mFileName;
+@property IBOutlet NSWindow *mWindow;
 @property NSString *path ;
 @property NSData *imageData;
-@property IBOutlet NSTextField	*mFileName;
-@property IBOutlet NSTextField	*mResult;
-@property IBOutlet NSWindow * mWindow;
+
+
 @property (nonatomic, strong) MHWDirectoryWatcher *directoryWatcher;
 
 @end

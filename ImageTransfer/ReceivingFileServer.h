@@ -11,9 +11,17 @@
 #import <AppKit/AppKit.h>
 
 
-@interface ReceivingFileServer : NSObject <NSStreamDelegate> 
+@interface ReceivingFileServer : NSObject <NSStreamDelegate> {
+    __weak NSWindow *mWindow;
+    NSMutableData *data;
+    NSString *fileName;
+    BOOL isHeader;
+}
+
+@property (nonatomic, weak) NSWindow *mWindow;
 
 - (int)setup;
 - (void)setview : (NSWindow *)window;
+
 
 @end
