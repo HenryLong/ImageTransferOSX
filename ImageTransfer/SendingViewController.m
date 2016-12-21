@@ -14,6 +14,7 @@
 @synthesize mResult;
 @synthesize mFileName;
 @synthesize mWindow;
+@synthesize mImageView;
 @synthesize path;
 @synthesize imageData;
 

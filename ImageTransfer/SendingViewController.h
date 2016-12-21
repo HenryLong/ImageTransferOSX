@@ -21,10 +21,6 @@
     ReceivingFileServer *mReceiveServer;
     SendingFileClient *mSendingClient;
     
-    IBOutlet IKImageView    *mImageView;
-    IBOutlet NSWindow       *mWindow;
-    IBOutlet NSTextField	*mResult;
-    IBOutlet NSTextField	*mFileName;
     NSDictionary *mImageProperties;
     NSString *mImageUTType;
     NSString *path;
@@ -40,9 +36,10 @@
 
 
 //we need export below variable
-@property IBOutlet NSTextField	*mResult;
-@property IBOutlet NSTextField	*mFileName;
-@property IBOutlet NSWindow *mWindow;
+@property (nonatomic, weak) IBOutlet NSTextField *mResult;
+@property (nonatomic, weak) IBOutlet NSTextField *mFileName;
+@property (nonatomic, weak) IBOutlet NSWindow *mWindow;
+@property (nonatomic, weak) IBOutlet IKImageView *mImageView;
 @property NSString *path ;
 @property NSData *imageData;
 
