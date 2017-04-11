@@ -7,7 +7,6 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import <Foundation/NSStream.h>
 #import <Social/Social.h>
 
 @interface ShareViewController : SLComposeServiceViewController{

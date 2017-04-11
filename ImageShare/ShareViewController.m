@@ -7,10 +7,6 @@
 //
 
 #import "ShareViewController.h"
-#import <CoreFoundation/CFStream.h>
-#import <Foundation/NSRunLoop.h>
-//#import "SendingViewController.h"
-
 
 @implementation ShareViewController
 
